@@ -55,12 +55,12 @@ def is_nonsense_data(normalized_input):
     """
     # Body Temp: extreme values
     body_temp = normalized_input.get('body_temp')
-    if body_temp is not None and (body_temp > 45 or body_temp < 20):
+    if body_temp is not None and (body_temp > 42 or body_temp < 32):
         return True
 
     # BS (Blood Sugar): extreme values
     bs = normalized_input.get('bs')
-    if bs is not None and (bs > 500 or bs < 0):
+    if bs is not None and (bs >250 or bs < 60):
         return True
 
     return False
@@ -92,6 +92,16 @@ def predict(data: dict):
             "prediction": "High Risk",
             "confidence": 1.0
         }
+
+    # Systolic BP validation
+    systolic_bp = normalized_input.get('systolic_bp')
+    if systolic_bp is not None and (systolic_bp < 70 or systolic_bp > 250):
+        raise HTTPException(status_code=400, detail="Invalid systolic blood pressure value")
+
+    # Diastolic BP validation
+    diastolic_bp = normalized_input.get('diastolic')
+    if diastolic_bp is not None and (diastolic_bp < 40 or diastolic_bp > 150):
+        raise HTTPException(status_code=400, detail="Invalid diastolic blood pressure value")
 
     row = {}
     for feature in features:
