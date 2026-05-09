@@ -49,6 +49,24 @@ features = best_feature_names(model)
 feature_name_map = {normalize_key(name): name for name in features}
 
 
+def is_nonsense_data(normalized_input):
+    """
+    Check for nonsense or extreme values that indicate high risk.
+    """
+    # Body Temp: extreme values
+    body_temp = normalized_input.get('body_temp')
+    if body_temp is not None and (body_temp > 45 or body_temp < 20):
+        return True
+
+    # BS (Blood Sugar): extreme values
+    bs = normalized_input.get('bs')
+    if bs is not None and (bs > 500 or bs < 0):
+        return True
+
+    return False
+
+
+
 @app.get("/")
 def home():
     return {"message": "API is running"}
@@ -68,9 +86,17 @@ def predict(data: dict):
         normalize_key(key): value for key, value in data.items()
     }
 
+    # Check for nonsense data
+    if is_nonsense_data(normalized_input):
+        return {
+            "prediction": "High Risk",
+            "confidence": 1.0
+        }
+
     row = {}
     for feature in features:
         row[feature] = normalized_input.get(normalize_key(feature))
+
 
     if "Pulse Pressure" in row and row.get("Pulse Pressure") is None:
         if row.get("Systolic BP") is None or row.get("Diastolic") is None:
